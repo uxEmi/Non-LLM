@@ -1,0 +1,13 @@
+scikit-learn
+xgboost
+torch
+pandas
+numpy
+matplotlib
+seaborn
+shap
+deep-translator
+fastapi
+uvicorn[standard]
+joblib
+pydantic

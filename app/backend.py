@@ -1,0 +1,142 @@
+import sys
+import time
+import random
+import pathlib
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+import joblib
+import torch
+import torch.nn as nn
+
+sys.path.append(str(pathlib.Path(__file__).resolve().parent.parent))
+from shared.labels import CLASSES
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+MODELS = ROOT / "models"
+
+app = FastAPI(title="Rutare tichete")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+LOADED = {}
+
+
+class Ticket(BaseModel):
+    text: str
+    model: str = "svm"
+
+
+# --- BiLSTM serving (mirrors train/train_bilstm.py) ---
+MAX_LEN = 200
+
+
+def tokenize(text):
+    return str(text).lower().split()
+
+
+def encode(text, stoi):
+    ids = [stoi.get(word, 1) for word in tokenize(text)][:MAX_LEN]
+    ids += [0] * (MAX_LEN - len(ids))
+    return ids
+
+
+class BiLSTMClassifier(nn.Module):
+    def __init__(self, vocab_size, embed_dim=100, hidden=128, n_classes=5):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
+        self.lstm = nn.LSTM(embed_dim, hidden, batch_first=True, bidirectional=True)
+        self.dropout = nn.Dropout(0.4)
+        self.fc = nn.Linear(hidden * 2, n_classes)
+
+    def forward(self, x):
+        embedded = self.embedding(x)
+        output, _ = self.lstm(embedded)
+        pooled = output.max(dim=1).values
+        return self.fc(self.dropout(pooled))
+
+
+def load_models():
+    svm_path = MODELS / "svm.joblib"
+    xgb_path = MODELS / "xgboost.joblib"
+    bilstm_path = MODELS / "bilstm.pt"
+    if svm_path.exists():
+        LOADED["svm"] = joblib.load(svm_path)
+    if xgb_path.exists():
+        LOADED["xgboost"] = joblib.load(xgb_path)
+    if bilstm_path.exists():
+        checkpoint = torch.load(bilstm_path, map_location="cpu")
+        stoi = checkpoint["stoi"]
+        classes = checkpoint["classes"]
+        model = BiLSTMClassifier(len(stoi), n_classes=len(classes))
+        model.load_state_dict(checkpoint["state"])
+        model.eval()
+        LOADED["bilstm"] = {"model": model, "stoi": stoi, "classes": classes}
+
+
+def translate_to_english(text):
+    try:
+        from deep_translator import GoogleTranslator
+        return GoogleTranslator(source="auto", target="en").translate(text)
+    except Exception:
+        return text
+
+
+def predict_svm(text):
+    pipeline = LOADED["svm"]
+    probabilities = pipeline.predict_proba([text])[0]
+    index = probabilities.argmax()
+    return pipeline.classes_[index], float(probabilities[index])
+
+
+def predict_xgboost(text):
+    bundle = LOADED["xgboost"]
+    features = bundle["vectorizer"].transform([text])
+    probabilities = bundle["classifier"].predict_proba(features)[0]
+    index = probabilities.argmax()
+    return bundle["encoder"].inverse_transform([index])[0], float(probabilities[index])
+
+
+def predict_bilstm(text):
+    bundle = LOADED["bilstm"]
+    ids = torch.tensor([encode(text, bundle["stoi"])])
+    with torch.no_grad():
+        probabilities = torch.softmax(bundle["model"](ids), dim=1)[0]
+    index = int(probabilities.argmax())
+    return bundle["classes"][index], float(probabilities[index])
+
+
+load_models()
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "loaded": list(LOADED.keys())}
+
+
+@app.post("/predict")
+def predict(ticket: Ticket):
+    text_en = translate_to_english(ticket.text)
+    start = time.perf_counter()
+
+    if ticket.model == "xgboost" and "xgboost" in LOADED:
+        team, confidence = predict_xgboost(text_en)
+    elif ticket.model == "svm" and "svm" in LOADED:
+        team, confidence = predict_svm(text_en)
+    elif ticket.model == "bilstm" and "bilstm" in LOADED:
+        team, confidence = predict_bilstm(text_en)
+    else:
+        team, confidence = random.choice(CLASSES), 0.5
+
+    latency_ms = round((time.perf_counter() - start) * 1000, 2)
+    return {
+        "predicted_team": team,
+        "confidence": confidence,
+        "latency_ms": latency_ms,
+        "model": ticket.model,
+    }

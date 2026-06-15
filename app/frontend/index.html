@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ticket Router — rutare automată a tichetelor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="mesh" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <div class="shell">
+    <section class="stage">
+      <h1>Lipește un tichet.<br /><span class="grad">Află instant unde ajunge.</span></h1>
+
+      <!-- Composer: one input shell with the model picker + action built in -->
+      <div class="composer" id="composer">
+        <textarea id="ticket" rows="3"
+          placeholder="ex: Am fost taxat de două ori pentru taxa anuală a cardului și vreau banii înapoi."></textarea>
+        <div class="composer-bar">
+          <div class="segmented" role="radiogroup" aria-label="Model de rutare" id="model-group">
+            <button class="seg" role="radio" aria-checked="true" data-model="svm">SVM</button>
+            <button class="seg" role="radio" aria-checked="false" data-model="xgboost">XGBoost</button>
+            <button class="seg" role="radio" aria-checked="false" data-model="bilstm">BiLSTM</button>
+          </div>
+          <button class="route-btn" id="route-btn">
+            <span class="route-btn-label">Rutează</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="chips" id="chips" aria-label="Exemple rapide"></div>
+    </section>
+
+    <!-- Result stage: bento grid, hidden until first route -->
+    <section class="result" id="readout-grid" hidden aria-live="polite">
+      <article class="tile tile-team" id="tile-team">
+        <div class="tile-top">
+          <span class="tile-label">Echipă destinație</span>
+          <span class="badge" id="board-tag">—</span>
+        </div>
+        <div class="team-name" id="r-team">—</div>
+        <div class="team-foot">
+          <span class="dot" id="r-dot" aria-hidden="true"></span>
+          <span id="r-sub">rutat de model</span>
+        </div>
+      </article>
+
+      <article class="tile tile-conf">
+        <span class="tile-label">Încredere</span>
+        <div class="gauge">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+              <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%"  stop-color="#F59E0B" />
+                <stop offset="100%" stop-color="#FB7185" />
+              </linearGradient>
+            </defs>
+            <circle class="ring-track" cx="60" cy="60" r="52" />
+            <circle class="ring-fill" id="r-ring" cx="60" cy="60" r="52" />
+          </svg>
+          <div class="gauge-center">
+            <span id="r-conf" class="mono-num">0</span><span class="unit">%</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="tile tile-stat">
+        <span class="tile-label">Latență</span>
+        <div class="stat-val"><span id="r-lat" class="mono-num">0</span><span class="unit">ms</span></div>
+      </article>
+
+      <article class="tile tile-stat">
+        <span class="tile-label">Model</span>
+        <div class="stat-val" id="r-model">—</div>
+      </article>
+
+      <article class="tile tile-track">
+        <span class="tile-label">Destinații</span>
+        <div class="queues" id="queues" role="list"></div>
+      </article>
+    </section>
+
+    <div class="readout-empty" id="readout-empty" hidden></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
