@@ -1,14 +1,3 @@
-"""Generate a synthetic English ticket dataset for local testing.
-
-The real pipeline uses the CFPB Consumer Complaint Database (see shared/prepare_data.py).
-That download isn't always available, so this script fabricates class-separable
-complaint text — enough signal to train usable demo models, with deliberate
-vocabulary overlap so the task isn't trivially perfect. Output contract matches
-prepare_data.py exactly: data/train.csv / data/test.csv with columns text,label.
-
-    python shared/make_demo_data.py --per-class 600
-"""
-
 import sys
 import pathlib
 import argparse
@@ -24,7 +13,6 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 DATA.mkdir(exist_ok=True)
 
-# Per-class building blocks. Each complaint = subject + problem + (optional) tail.
 TEMPLATES = {
     "Loans": {
         "subject": ["my mortgage", "my auto loan", "my student loan", "my personal loan",
@@ -78,7 +66,6 @@ TEMPLATES = {
     },
 }
 
-# A little shared filler so classes share some neutral vocabulary (realistic noise).
 PREFIX = ["", "", "Hello, ", "To whom it may concern, ", "I am writing because ",
           "I am very frustrated that ", "For the third time, "]
 

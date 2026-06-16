@@ -30,7 +30,7 @@ const resultEl = $("readout-grid");
 const emptyEl  = $("readout-empty");
 const ringEl   = $("r-ring");
 
-const RING_CIRC = 2 * Math.PI * 52;   // r=52 in the SVG
+const RING_CIRC = 2 * Math.PI * 52;
 ringEl.style.strokeDasharray = RING_CIRC;
 ringEl.style.strokeDashoffset = RING_CIRC;
 
@@ -114,19 +114,16 @@ function render(result) {
   const key = review ? REVIEW_KEY : result.predicted_team;
   const targetEl = queueEls[key] || queueEls[REVIEW_KEY];
 
-  // Reveal + replay the bento entrance animation
   emptyEl.hidden = true;
   resultEl.hidden = false;
   resultEl.querySelectorAll(".tile").forEach((t) => {
     t.style.animation = "none"; void t.offsetWidth; t.style.animation = "";
   });
 
-  // Destination highlight
   Object.values(queueEls).forEach((el) => el.classList.remove("active", "dim"));
   Object.values(queueEls).forEach((el) => { if (el !== targetEl) el.classList.add("dim"); });
   targetEl.classList.add("active");
 
-  // Team hero
   const teamRo = review ? REVIEW_LABEL_RO : TEAMS[result.predicted_team];
   $("r-team").textContent = teamRo;
   $("r-team").style.color = review ? "var(--alert)" : "var(--text)";
@@ -136,7 +133,6 @@ function render(result) {
   dot.style.boxShadow = review ? "0 0 0 4px var(--alert-soft)" : "0 0 0 4px var(--accent-soft)";
   setBadge(review ? "verificare" : "rutat", review ? "is-review" : "is-routed");
 
-  // Confidence gauge
   const confPct = Math.round(result.confidence * 100);
   countUp($("r-conf"), confPct);
   ringEl.style.stroke = review ? "var(--alert)" : "url(#ringGrad)";
@@ -144,7 +140,6 @@ function render(result) {
     ringEl.style.strokeDashoffset = RING_CIRC * (1 - result.confidence);
   });
 
-  // Stats
   countUp($("r-lat"), result.latency_ms);
   $("r-model").textContent = result.model.toUpperCase();
 }

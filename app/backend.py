@@ -32,7 +32,6 @@ class Ticket(BaseModel):
     model: str = "svm"
 
 
-# --- BiLSTM serving (mirrors train/train_bilstm.py) ---
 MAX_LEN = 200
 
 
