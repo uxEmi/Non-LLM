@@ -17,6 +17,7 @@ models/*
 !models/.gitkeep
 !models/svm.joblib
 !models/xgboost.joblib
+!models/bilstm.pt
 
 # --- Training outputs ---
 results.csv
