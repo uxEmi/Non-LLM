@@ -25,7 +25,7 @@ def main():
     test = pd.read_csv(DATA / "test.csv")
 
     vectorizer = TfidfVectorizer(ngram_range=(1, 2), min_df=5,
-                                 sublinear_tf=True, max_features=40000)
+                                 sublinear_tf=True, max_features=3000)
     x_train = vectorizer.fit_transform(train["text"])
     x_test = vectorizer.transform(test["text"])
 
@@ -33,9 +33,9 @@ def main():
     y_train = encoder.transform(train["label"])
 
     classifier = XGBClassifier(
-        n_estimators=400, max_depth=6, learning_rate=0.2,
+        n_estimators=60, max_depth=4, learning_rate=0.2,
         subsample=0.9, colsample_bytree=0.8,
-        tree_method="hist", n_jobs=-1, eval_metric="mlogloss",
+        tree_method="hist", n_jobs=2, eval_metric="mlogloss",
     )
 
     start = time.time()

@@ -147,6 +147,25 @@ function render(result) {
   // Stats
   countUp($("r-lat"), result.latency_ms);
   $("r-model").textContent = result.model.toUpperCase();
+
+  // Keywords
+  const kwContainer = $("r-keywords");
+  kwContainer.innerHTML = "";
+  if (result.keywords && result.keywords.length > 0) {
+    result.keywords.forEach((kw) => {
+      const chip = document.createElement("span");
+      chip.className = "keyword-chip";
+      const scoreStr = kw.score >= 0.001 ? kw.score.toFixed(3) : kw.score.toFixed(5);
+      chip.innerHTML = `${kw.word} <span class="keyword-score">${scoreStr}</span>`;
+      kwContainer.appendChild(chip);
+    });
+  } else {
+    const emptySpan = document.createElement("span");
+    emptySpan.style.color = "var(--faint)";
+    emptySpan.style.fontSize = "13px";
+    emptySpan.textContent = "Indisponibil pentru acest model";
+    kwContainer.appendChild(emptySpan);
+  }
 }
 
 async function route() {

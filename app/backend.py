@@ -9,6 +9,7 @@ from pydantic import BaseModel
 import joblib
 import torch
 import torch.nn as nn
+import numpy as np
 
 sys.path.append(str(pathlib.Path(__file__).resolve().parent.parent))
 from shared.labels import CLASSES
@@ -111,6 +112,62 @@ def predict_bilstm(text):
     return bundle["classes"][index], float(probabilities[index])
 
 
+def explain_svm(text, pipeline):
+    try:
+        tfidf = pipeline.named_steps["tfidf"]
+        calibrated_cv = pipeline.named_steps["svm"]
+        feature_names = tfidf.get_feature_names_out()
+        vector = tfidf.transform([text]).toarray()[0]
+        active_indices = np.where(vector > 0)[0]
+        if len(active_indices) == 0:
+            return []
+        probs = pipeline.predict_proba([text])[0]
+        pred_idx = probs.argmax()
+        coefs = np.mean([clf.estimator.coef_ for clf in calibrated_cv.calibrated_classifiers_], axis=0)
+        if len(coefs.shape) == 1:
+            class_coef = coefs
+        elif coefs.shape[0] == 1:
+            class_coef = coefs[0]
+        else:
+            class_coef = coefs[pred_idx]
+        contributions = []
+        for idx in active_indices:
+            feature_name = feature_names[idx]
+            tfidf_val = vector[idx]
+            coef_val = class_coef[idx]
+            contrib = tfidf_val * coef_val
+            contributions.append((feature_name, float(contrib)))
+        contributions.sort(key=lambda x: x[1], reverse=True)
+        return [{"word": word, "score": round(score, 4)} for word, score in contributions[:5] if score > 0]
+    except Exception as e:
+        print("Error explaining SVM:", e)
+        return []
+
+
+def explain_xgboost(text, bundle):
+    try:
+        vectorizer = bundle["vectorizer"]
+        classifier = bundle["classifier"]
+        feature_names = vectorizer.get_feature_names_out()
+        vector = vectorizer.transform([text]).toarray()[0]
+        active_indices = np.where(vector > 0)[0]
+        if len(active_indices) == 0:
+            return []
+        importances = classifier.feature_importances_
+        contributions = []
+        for idx in active_indices:
+            feature_name = feature_names[idx]
+            tfidf_val = vector[idx]
+            imp_val = importances[idx]
+            contrib = tfidf_val * imp_val
+            contributions.append((feature_name, float(contrib)))
+        contributions.sort(key=lambda x: x[1], reverse=True)
+        return [{"word": word, "score": round(score, 6)} for word, score in contributions[:5] if score > 0]
+    except Exception as e:
+        print("Error explaining XGBoost:", e)
+        return []
+
+
 load_models()
 
 
@@ -123,11 +180,14 @@ def health():
 def predict(ticket: Ticket):
     text_en = translate_to_english(ticket.text)
     start = time.perf_counter()
+    keywords = []
 
     if ticket.model == "xgboost" and "xgboost" in LOADED:
         team, confidence = predict_xgboost(text_en)
+        keywords = explain_xgboost(text_en, LOADED["xgboost"])
     elif ticket.model == "svm" and "svm" in LOADED:
         team, confidence = predict_svm(text_en)
+        keywords = explain_svm(text_en, LOADED["svm"])
     elif ticket.model == "bilstm" and "bilstm" in LOADED:
         team, confidence = predict_bilstm(text_en)
     else:
@@ -139,4 +199,5 @@ def predict(ticket: Ticket):
         "confidence": confidence,
         "latency_ms": latency_ms,
         "model": ticket.model,
+        "keywords": keywords,
     }
