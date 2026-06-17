@@ -346,19 +346,23 @@ function render(result) {
   countUp($("r-wait"), wait);
   $("r-wait").style.color = wait <= 5 ? "#1FA971" : wait <= 15 ? "#E8890B" : "var(--alert)";
 
-  const words = result.top_words || [];
-  const why = $("r-why"), wrap = $("r-words");
-  wrap.innerHTML = "";
-  if (words.length && !review) {
-    words.forEach((w) => {
-      const s = document.createElement("span");
-      s.className = "why-word";
-      s.textContent = w;
-      wrap.appendChild(s);
+  // Keywords
+  const kwContainer = $("r-keywords");
+  kwContainer.innerHTML = "";
+  if (result.keywords && result.keywords.length > 0) {
+    result.keywords.forEach((kw) => {
+      const chip = document.createElement("span");
+      chip.className = "keyword-chip";
+      const scoreStr = kw.score >= 0.001 ? kw.score.toFixed(3) : kw.score.toFixed(5);
+      chip.innerHTML = `${kw.word} <span class="keyword-score">${scoreStr}</span>`;
+      kwContainer.appendChild(chip);
     });
-    why.hidden = false;
   } else {
-    why.hidden = true;
+    const emptySpan = document.createElement("span");
+    emptySpan.style.color = "var(--faint)";
+    emptySpan.style.fontSize = "13px";
+    emptySpan.textContent = "Indisponibil pentru acest model";
+    kwContainer.appendChild(emptySpan);
   }
 }
 

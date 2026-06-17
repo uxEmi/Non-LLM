@@ -11,6 +11,7 @@ import joblib
 import numpy as np
 import torch
 import torch.nn as nn
+import numpy as np
 
 sys.path.append(str(pathlib.Path(__file__).resolve().parent.parent))
 from shared.labels import CLASSES
@@ -141,59 +142,60 @@ def predict_bilstm(text):
     return bundle["classes"][index], float(probabilities[index])
 
 
-def _top_scored(scored, k):
-    scored = [s for s in scored if s[1] > 0]
-    scored.sort(key=lambda s: s[1], reverse=True)
-    out, seen = [], set()
-    for word, _ in scored:
-        if word not in seen:
-            seen.add(word)
-            out.append(word)
-        if len(out) >= k:
-            break
-    return out
-
-
-def words_svm(text, team, k=5):
-    pipeline = LOADED["svm"]
-    tfidf = pipeline.named_steps["tfidf"]
-    clf = pipeline.named_steps["svm"]
-    classes = list(pipeline.classes_)
-    if team not in classes:
-        return []
-    ci = classes.index(team)
-    coef = np.mean([cc.estimator.coef_[ci] for cc in clf.calibrated_classifiers_], axis=0)
-    x = tfidf.transform([text])
-    names = tfidf.get_feature_names_out()
-    scored = [(names[idx], float(val * coef[idx])) for idx, val in zip(x.indices, x.data)]
-    return _top_scored(scored, k)
-
-
-def words_xgboost(text, team, k=5):
-    import xgboost as xgb
-    bundle = LOADED["xgboost"]
-    vectorizer, classifier, encoder = bundle["vectorizer"], bundle["classifier"], bundle["encoder"]
-    classes = list(encoder.classes_)
-    if team not in classes:
-        return []
-    ci = classes.index(team)
-    x = vectorizer.transform([text])
-    contribs = np.array(classifier.get_booster().predict(xgb.DMatrix(x), pred_contribs=True))
-    row = contribs[0, ci, :-1]
-    names = vectorizer.get_feature_names_out()
-    scored = [(names[idx], float(row[idx])) for idx in x.indices]
-    return _top_scored(scored, k)
-
-
-def influential_words(model, text, team, k=5):
+def explain_svm(text, pipeline):
     try:
-        if model == "svm" and "svm" in LOADED:
-            return words_svm(text, team, k)
-        if model == "xgboost" and "xgboost" in LOADED:
-            return words_xgboost(text, team, k)
-    except Exception:
+        tfidf = pipeline.named_steps["tfidf"]
+        calibrated_cv = pipeline.named_steps["svm"]
+        feature_names = tfidf.get_feature_names_out()
+        vector = tfidf.transform([text]).toarray()[0]
+        active_indices = np.where(vector > 0)[0]
+        if len(active_indices) == 0:
+            return []
+        probs = pipeline.predict_proba([text])[0]
+        pred_idx = probs.argmax()
+        coefs = np.mean([clf.estimator.coef_ for clf in calibrated_cv.calibrated_classifiers_], axis=0)
+        if len(coefs.shape) == 1:
+            class_coef = coefs
+        elif coefs.shape[0] == 1:
+            class_coef = coefs[0]
+        else:
+            class_coef = coefs[pred_idx]
+        contributions = []
+        for idx in active_indices:
+            feature_name = feature_names[idx]
+            tfidf_val = vector[idx]
+            coef_val = class_coef[idx]
+            contrib = tfidf_val * coef_val
+            contributions.append((feature_name, float(contrib)))
+        contributions.sort(key=lambda x: x[1], reverse=True)
+        return [{"word": word, "score": round(score, 4)} for word, score in contributions[:5] if score > 0]
+    except Exception as e:
+        print("Error explaining SVM:", e)
         return []
-    return []
+
+
+def explain_xgboost(text, bundle):
+    try:
+        vectorizer = bundle["vectorizer"]
+        classifier = bundle["classifier"]
+        feature_names = vectorizer.get_feature_names_out()
+        vector = vectorizer.transform([text]).toarray()[0]
+        active_indices = np.where(vector > 0)[0]
+        if len(active_indices) == 0:
+            return []
+        importances = classifier.feature_importances_
+        contributions = []
+        for idx in active_indices:
+            feature_name = feature_names[idx]
+            tfidf_val = vector[idx]
+            imp_val = importances[idx]
+            contrib = tfidf_val * imp_val
+            contributions.append((feature_name, float(contrib)))
+        contributions.sort(key=lambda x: x[1], reverse=True)
+        return [{"word": word, "score": round(score, 6)} for word, score in contributions[:5] if score > 0]
+    except Exception as e:
+        print("Error explaining XGBoost:", e)
+        return []
 
 
 load_models()
@@ -208,11 +210,14 @@ def health():
 def predict(ticket: Ticket):
     text_en = translate_to_english(ticket.text)
     start = time.perf_counter()
+    keywords = []
 
     if ticket.model == "xgboost" and "xgboost" in LOADED:
         team, confidence = predict_xgboost(text_en)
+        keywords = explain_xgboost(text_en, LOADED["xgboost"])
     elif ticket.model == "svm" and "svm" in LOADED:
         team, confidence = predict_svm(text_en)
+        keywords = explain_svm(text_en, LOADED["svm"])
     elif ticket.model == "bilstm" and "bilstm" in LOADED:
         team, confidence = predict_bilstm(text_en)
     else:
@@ -227,5 +232,5 @@ def predict(ticket: Ticket):
         "model": ticket.model,
         "estimated_wait_min": wait_min,
         "queue_len": queue_len,
-        "top_words": influential_words(ticket.model, text_en, team),
+        "keywords": keywords,
     }
