@@ -161,7 +161,243 @@ function render(result) {
   } else {
     why.hidden = true;
   }
+
+  renderHeatmap(result);
+  updateArena(result);
 }
+
+function renderHeatmap(result) {
+  const weights = result.word_weights || {};
+  const text = result.text_en || "";
+  const tile = $("r-heat-tile"), box = $("r-heat");
+  if (!Object.keys(weights).length || !text) { tile.hidden = true; return; }
+  box.innerHTML = "";
+  text.split(/(\s+)/).forEach((tok) => {
+    if (/^\s+$/.test(tok) || tok === "") { box.appendChild(document.createTextNode(tok)); return; }
+    const key = tok.toLowerCase().replace(/[^a-z0-9]+/g, "");
+    const w = weights[key];
+    const span = document.createElement("span");
+    span.className = "heat-word";
+    span.textContent = tok;
+    if (w !== undefined && Math.abs(w) > 0.06) {
+      const a = Math.min(Math.abs(w), 1) * 0.6;
+      span.style.background = w > 0 ? `rgba(31,169,113,${a})` : `rgba(229,72,77,${a})`;
+      span.title = `${w > 0 ? "susține" : "împotriva"} ${result.predicted_team} (${w.toFixed(2)})`;
+    }
+    box.appendChild(span);
+  });
+  tile.hidden = false;
+}
+
+const CLASS_LIST = Object.keys(TEAMS);
+const ARENA_SHORT = {
+  "Loans": "Credite",
+  "Credit Reporting": "Raportare",
+  "Bank Accounts and Services": "Conturi",
+  "Debt Collection": "Colectare",
+  "Credit Card Services": "Carduri",
+};
+const MODEL_COLORS = { svm: "#F59E0B", xgboost: "#FB7185", bilstm: "#2BB3C0" };
+
+const API_TRACE = API_URL.replace(/\/predict$/, "/trace");
+const arenaCanvas = $("arena-canvas");
+const actx = arenaCanvas.getContext("2d");
+let arenaAnchors = [];
+let arenaOrbs = [];
+let arenaRAF = null;
+let trailPoints = [];
+let traceTimer = null;
+let lastTrace = null;
+let lastTraceModel = "svm";
+
+function hexA(hex, a) {
+  const v = Math.max(0, Math.min(255, Math.round(a * 255))).toString(16).padStart(2, "0");
+  return hex + v;
+}
+
+function arenaLayout() {
+  const w = arenaCanvas.clientWidth || 600;
+  const h = Math.max(320, Math.min(420, w * 0.62));
+  const dpr = window.devicePixelRatio || 1;
+  arenaCanvas.width = w * dpr;
+  arenaCanvas.height = h * dpr;
+  arenaCanvas.style.height = h + "px";
+  actx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const cx = w / 2, cy = h / 2 + 6, R = Math.min(w, h) * 0.33;
+  arenaAnchors = CLASS_LIST.map((c, i) => {
+    const a = -Math.PI / 2 + i * 2 * Math.PI / 5;
+    return { x: cx + R * Math.cos(a), y: cy + R * Math.sin(a), label: ARENA_SHORT[c], cx, cy };
+  });
+}
+
+function orbPos(probs) {
+  let x = 0, y = 0;
+  CLASS_LIST.forEach((c, i) => { const p = probs[c] || 0; x += p * arenaAnchors[i].x; y += p * arenaAnchors[i].y; });
+  return { x, y };
+}
+
+function drawArena() {
+  const w = arenaCanvas.clientWidth, h = parseFloat(arenaCanvas.style.height);
+  actx.clearRect(0, 0, w, h);
+
+  actx.strokeStyle = "rgba(140,110,70,.16)";
+  actx.lineWidth = 1;
+  actx.beginPath();
+  arenaAnchors.forEach((a, i) => { i ? actx.lineTo(a.x, a.y) : actx.moveTo(a.x, a.y); });
+  actx.closePath();
+  actx.stroke();
+
+  if (trailPoints.length > 1) {
+    const color = arenaOrbs.length ? arenaOrbs[0].color : "#F59E0B";
+    for (let k = 1; k < trailPoints.length; k++) {
+      actx.strokeStyle = hexA(color, (k / trailPoints.length) * 0.55);
+      actx.lineWidth = 2.5;
+      actx.lineCap = "round";
+      actx.beginPath();
+      actx.moveTo(trailPoints[k - 1].x, trailPoints[k - 1].y);
+      actx.lineTo(trailPoints[k].x, trailPoints[k].y);
+      actx.stroke();
+    }
+  } else if (arenaOrbs.length === 1 && arenaOrbs[0].src) {
+    const o = arenaOrbs[0];
+    CLASS_LIST.forEach((c, i) => {
+      const p = o.src[c] || 0;
+      actx.strokeStyle = `rgba(245,158,11,${Math.max(0.05, p * 0.7)})`;
+      actx.lineWidth = 1 + p * 6;
+      actx.beginPath();
+      actx.moveTo(arenaAnchors[i].x, arenaAnchors[i].y);
+      actx.lineTo(o.x, o.y);
+      actx.stroke();
+    });
+  }
+
+  arenaAnchors.forEach((a) => {
+    actx.beginPath();
+    actx.arc(a.x, a.y, 6, 0, Math.PI * 2);
+    actx.fillStyle = "#CBB082";
+    actx.fill();
+    actx.font = "600 12.5px Inter, sans-serif";
+    actx.fillStyle = "#7C6F60";
+    actx.textAlign = a.x < a.cx - 6 ? "right" : a.x > a.cx + 6 ? "left" : "center";
+    actx.textBaseline = a.y < a.cy ? "bottom" : "top";
+    actx.fillText(a.label, a.x + (a.x - a.cx) * 0.14, a.y + (a.y - a.cy) * 0.16);
+  });
+
+  arenaOrbs.forEach((o) => {
+    const g = actx.createRadialGradient(o.x, o.y, 1, o.x, o.y, o.r * 2.6);
+    g.addColorStop(0, o.color);
+    g.addColorStop(0.45, o.color + "77");
+    g.addColorStop(1, o.color + "00");
+    actx.fillStyle = g;
+    actx.beginPath();
+    actx.arc(o.x, o.y, o.r * 2.6, 0, Math.PI * 2);
+    actx.fill();
+    actx.fillStyle = o.color;
+    actx.beginPath();
+    actx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
+    actx.fill();
+    actx.strokeStyle = "#fff";
+    actx.lineWidth = 2;
+    actx.stroke();
+  });
+}
+
+function startArena() {
+  if (arenaRAF) return;
+  const step = () => {
+    let moving = false;
+    arenaOrbs.forEach((o) => {
+      o.x += (o.tx - o.x) * 0.12;
+      o.y += (o.ty - o.y) * 0.12;
+      if (Math.abs(o.tx - o.x) > 0.4 || Math.abs(o.ty - o.y) > 0.4) moving = true;
+    });
+    drawArena();
+    arenaRAF = moving ? requestAnimationFrame(step) : null;
+  };
+  arenaRAF = requestAnimationFrame(step);
+}
+
+function setArenaSingle(probs, model) {
+  arenaLayout();
+  trailPoints = [];
+  const t = orbPos(probs);
+  const color = MODEL_COLORS[model] || "#F59E0B";
+  const c = arenaAnchors[0];
+  arenaOrbs = [{ x: c.cx, y: c.cy, tx: t.x, ty: t.y, color, r: 13, src: probs }];
+  startArena();
+}
+
+function cancelTrajectory() {
+  if (traceTimer) { clearTimeout(traceTimer); traceTimer = null; }
+  if (arenaRAF) { cancelAnimationFrame(arenaRAF); arenaRAF = null; }
+  trailPoints = [];
+}
+
+function playTrajectory(steps, model) {
+  arenaLayout();
+  cancelTrajectory();
+  const positions = steps.map((s) => orbPos(s.probabilities));
+  if (!positions.length) return;
+  const color = MODEL_COLORS[model] || "#F59E0B";
+  arenaOrbs = [{ x: positions[0].x, y: positions[0].y, tx: positions[0].x, ty: positions[0].y, color, r: 13, src: steps[steps.length - 1].probabilities }];
+  let i = 0;
+  let done = false;
+  const stepMs = Math.max(55, Math.min(150, 3000 / positions.length));
+  const advance = () => {
+    arenaOrbs[0].tx = positions[i].x;
+    arenaOrbs[0].ty = positions[i].y;
+    i += 1;
+    traceTimer = setTimeout(i < positions.length ? advance : () => { done = true; }, stepMs);
+  };
+  advance();
+  const loop = () => {
+    const o = arenaOrbs[0];
+    o.x += (o.tx - o.x) * 0.2;
+    o.y += (o.ty - o.y) * 0.2;
+    trailPoints.push({ x: o.x, y: o.y });
+    if (trailPoints.length > 280) trailPoints.shift();
+    drawArena();
+    if (done && Math.abs(o.tx - o.x) < 0.5 && Math.abs(o.ty - o.y) < 0.5) { arenaRAF = null; drawArena(); return; }
+    arenaRAF = requestAnimationFrame(loop);
+  };
+  arenaRAF = requestAnimationFrame(loop);
+}
+
+async function updateArena(result) {
+  if (!result.probabilities) return;
+  $("arena-modal").hidden = false;
+  arenaLayout();
+  const text = ticketEl.value.trim();
+  try {
+    const res = await fetch(API_TRACE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, model: result.model }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.steps && data.steps.length) {
+        lastTrace = data.steps;
+        lastTraceModel = result.model;
+        playTrajectory(data.steps, result.model);
+        return;
+      }
+    }
+  } catch (err) { /* fall back to static orb */ }
+  setArenaSingle(result.probabilities, result.model);
+}
+
+function closeArena() {
+  $("arena-modal").hidden = true;
+  cancelTrajectory();
+}
+
+window.addEventListener("resize", () => {
+  if ($("arena-modal").hidden) return;
+  arenaLayout();
+  arenaOrbs.forEach((o) => { if (o.src) { const t = orbPos(o.src); o.tx = o.x = t.x; o.ty = o.y = t.y; } });
+  drawArena();
+});
 
 async function route() {
   const text = ticketEl.value.trim();
@@ -187,6 +423,12 @@ buildQueues();
 buildChips();
 wireModelGroup();
 routeBtn.addEventListener("click", route);
+$("arena-close").addEventListener("click", closeArena);
+$("arena-replay").addEventListener("click", () => { if (lastTrace) playTrajectory(lastTrace, lastTraceModel); });
+$("arena-backdrop").addEventListener("click", closeArena);
 ticketEl.addEventListener("keydown", (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === "Enter") route();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !$("arena-modal").hidden) closeArena();
 });

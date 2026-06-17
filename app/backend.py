@@ -117,28 +117,35 @@ def translate_to_english(text):
         return text
 
 
-def predict_svm(text):
+def proba_svm(text):
     pipeline = LOADED["svm"]
     probabilities = pipeline.predict_proba([text])[0]
-    index = probabilities.argmax()
-    return pipeline.classes_[index], float(probabilities[index])
+    return {cls: float(p) for cls, p in zip(pipeline.classes_, probabilities)}
 
 
-def predict_xgboost(text):
+def proba_xgboost(text):
     bundle = LOADED["xgboost"]
     features = bundle["vectorizer"].transform([text])
     probabilities = bundle["classifier"].predict_proba(features)[0]
-    index = probabilities.argmax()
-    return bundle["encoder"].inverse_transform([index])[0], float(probabilities[index])
+    return {cls: float(p) for cls, p in zip(bundle["encoder"].classes_, probabilities)}
 
 
-def predict_bilstm(text):
+def proba_bilstm(text):
     bundle = LOADED["bilstm"]
     ids = torch.tensor([encode(text, bundle["stoi"])])
     with torch.no_grad():
-        probabilities = torch.softmax(bundle["model"](ids), dim=1)[0]
-    index = int(probabilities.argmax())
-    return bundle["classes"][index], float(probabilities[index])
+        probabilities = torch.softmax(bundle["model"](ids), dim=1)[0].tolist()
+    return {cls: float(p) for cls, p in zip(bundle["classes"], probabilities)}
+
+
+def model_proba(model, text):
+    if model == "xgboost" and "xgboost" in LOADED:
+        return proba_xgboost(text)
+    if model == "svm" and "svm" in LOADED:
+        return proba_svm(text)
+    if model == "bilstm" and "bilstm" in LOADED:
+        return proba_bilstm(text)
+    return None
 
 
 def _top_scored(scored, k):
@@ -154,46 +161,48 @@ def _top_scored(scored, k):
     return out
 
 
-def words_svm(text, team, k=5):
-    pipeline = LOADED["svm"]
-    tfidf = pipeline.named_steps["tfidf"]
-    clf = pipeline.named_steps["svm"]
-    classes = list(pipeline.classes_)
-    if team not in classes:
-        return []
-    ci = classes.index(team)
-    coef = np.mean([cc.estimator.coef_[ci] for cc in clf.calibrated_classifiers_], axis=0)
-    x = tfidf.transform([text])
-    names = tfidf.get_feature_names_out()
-    scored = [(names[idx], float(val * coef[idx])) for idx, val in zip(x.indices, x.data)]
-    return _top_scored(scored, k)
-
-
-def words_xgboost(text, team, k=5):
-    import xgboost as xgb
-    bundle = LOADED["xgboost"]
-    vectorizer, classifier, encoder = bundle["vectorizer"], bundle["classifier"], bundle["encoder"]
-    classes = list(encoder.classes_)
-    if team not in classes:
-        return []
-    ci = classes.index(team)
-    x = vectorizer.transform([text])
-    contribs = np.array(classifier.get_booster().predict(xgb.DMatrix(x), pred_contribs=True))
-    row = contribs[0, ci, :-1]
-    names = vectorizer.get_feature_names_out()
-    scored = [(names[idx], float(row[idx])) for idx in x.indices]
-    return _top_scored(scored, k)
-
-
-def influential_words(model, text, team, k=5):
-    try:
-        if model == "svm" and "svm" in LOADED:
-            return words_svm(text, team, k)
-        if model == "xgboost" and "xgboost" in LOADED:
-            return words_xgboost(text, team, k)
-    except Exception:
-        return []
+def _scored_features(model, text, team):
+    if model == "svm" and "svm" in LOADED:
+        pipeline = LOADED["svm"]
+        tfidf = pipeline.named_steps["tfidf"]
+        clf = pipeline.named_steps["svm"]
+        classes = list(pipeline.classes_)
+        if team not in classes:
+            return []
+        ci = classes.index(team)
+        coef = np.mean([cc.estimator.coef_[ci] for cc in clf.calibrated_classifiers_], axis=0)
+        x = tfidf.transform([text])
+        names = tfidf.get_feature_names_out()
+        return [(names[idx], float(val * coef[idx])) for idx, val in zip(x.indices, x.data)]
+    if model == "xgboost" and "xgboost" in LOADED:
+        import xgboost as xgb
+        bundle = LOADED["xgboost"]
+        vectorizer, classifier, encoder = bundle["vectorizer"], bundle["classifier"], bundle["encoder"]
+        classes = list(encoder.classes_)
+        if team not in classes:
+            return []
+        ci = classes.index(team)
+        x = vectorizer.transform([text])
+        contribs = np.array(classifier.get_booster().predict(xgb.DMatrix(x), pred_contribs=True))
+        row = contribs[0, ci, :-1]
+        names = vectorizer.get_feature_names_out()
+        return [(names[idx], float(row[idx])) for idx in x.indices]
     return []
+
+
+def explain(model, text, team):
+    try:
+        scored = _scored_features(model, text, team)
+    except Exception:
+        return [], {}
+    top = _top_scored(scored, 5)
+    unigrams = [(name, w) for name, w in scored if " " not in name]
+    max_abs = max((abs(w) for _, w in unigrams), default=0.0)
+    weights = {}
+    if max_abs > 0:
+        for name, w in unigrams:
+            weights[name] = round(w / max_abs, 3)
+    return top, weights
 
 
 load_models()
@@ -208,18 +217,18 @@ def health():
 def predict(ticket: Ticket):
     text_en = translate_to_english(ticket.text)
     start = time.perf_counter()
-
-    if ticket.model == "xgboost" and "xgboost" in LOADED:
-        team, confidence = predict_xgboost(text_en)
-    elif ticket.model == "svm" and "svm" in LOADED:
-        team, confidence = predict_svm(text_en)
-    elif ticket.model == "bilstm" and "bilstm" in LOADED:
-        team, confidence = predict_bilstm(text_en)
+    probs = model_proba(ticket.model, text_en)
+    if probs is None:
+        team = random.choice(CLASSES)
+        confidence = 0.5
+        probs = {c: (0.5 if c == team else 0.125) for c in CLASSES}
     else:
-        team, confidence = random.choice(CLASSES), 0.5
+        team = max(probs, key=probs.get)
+        confidence = probs[team]
 
     latency_ms = round((time.perf_counter() - start) * 1000, 2)
     wait_min, queue_len = department_wait(team)
+    top_words, word_weights = explain(ticket.model, text_en, team)
     return {
         "predicted_team": team,
         "confidence": confidence,
@@ -227,5 +236,50 @@ def predict(ticket: Ticket):
         "model": ticket.model,
         "estimated_wait_min": wait_min,
         "queue_len": queue_len,
-        "top_words": influential_words(ticket.model, text_en, team),
+        "top_words": top_words,
+        "word_weights": word_weights,
+        "text_en": text_en,
+        "probabilities": probs,
     }
+
+
+@app.post("/trace")
+def trace(ticket: Ticket):
+    text_en = translate_to_english(ticket.text)
+    tokens = text_en.split()
+    steps = [{"n": 0, "word": "", "probabilities": {c: 1.0 / len(CLASSES) for c in CLASSES}}]
+    if tokens:
+        n = len(tokens)
+        max_steps = 40
+        if n <= max_steps:
+            lengths = list(range(1, n + 1))
+        else:
+            lengths = sorted({max(1, round((i + 1) * n / max_steps)) for i in range(max_steps)})
+            lengths[-1] = n
+        for k in lengths:
+            probs = model_proba(ticket.model, " ".join(tokens[:k]))
+            if probs is None:
+                steps = []
+                break
+            steps.append({"n": k, "word": tokens[k - 1], "probabilities": probs})
+    return {"text_en": text_en, "model": ticket.model, "steps": steps}
+
+
+@app.post("/predict_all")
+def predict_all(ticket: Ticket):
+    text_en = translate_to_english(ticket.text)
+    models = {}
+    for name in ("svm", "xgboost", "bilstm"):
+        if name not in LOADED:
+            continue
+        start = time.perf_counter()
+        probs = model_proba(name, text_en)
+        latency_ms = round((time.perf_counter() - start) * 1000, 2)
+        team = max(probs, key=probs.get)
+        models[name] = {
+            "predicted_team": team,
+            "confidence": probs[team],
+            "latency_ms": latency_ms,
+            "probabilities": probs,
+        }
+    return {"text_en": text_en, "models": models}

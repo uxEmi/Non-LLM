@@ -207,6 +207,7 @@ h1 {
               box-shadow .18s var(--ease), transform .18s var(--ease);
 }
 .chip:hover { color: var(--accent); border-color: var(--accent-2); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.live-hint { text-align: center; margin-top: 12px; font-size: 12px; color: var(--faint); }
 
 .readout-empty {
   text-align: center; color: var(--faint); font-size: 14px;
@@ -236,6 +237,8 @@ h1 {
 .tile:nth-child(4) { animation-delay: .16s; }
 .tile:nth-child(5) { animation-delay: .20s; }
 .tile:nth-child(6) { animation-delay: .24s; }
+.tile:nth-child(7) { animation-delay: .28s; }
+.tile[hidden] { display: none; }
 @keyframes pop { to { opacity: 1; transform: translateY(0) scale(1); } }
 
 .tile-label {
@@ -308,6 +311,20 @@ h1 {
   display: flex; flex-direction: column; justify-content: space-between; gap: 14px;
 }
 .tile-wait { grid-column: span 2; }
+.tile-heat { grid-column: span 4; }
+.heat-text {
+  margin-top: 12px; font-size: 15.5px; line-height: 2; color: var(--text);
+  word-spacing: 1px;
+}
+.heat-word { padding: 2px 1px; border-radius: 5px; transition: background .35s var(--ease); }
+.heat-legend {
+  display: flex; gap: 18px; margin-top: 14px;
+  font-family: var(--mono); font-size: 11px; color: var(--faint);
+}
+.heat-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.heat-swatch { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+.heat-swatch.pos { background: rgba(31, 169, 113, .5); }
+.heat-swatch.neg { background: rgba(229, 72, 77, .5); }
 .stat-val { font-size: 16px; font-weight: 600; color: var(--text); }
 .stat-val .mono-num { font-family: var(--mono); font-weight: 600; font-size: clamp(26px, 3.4vw, 34px); }
 .stat-val .unit { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-left: 2px; }
@@ -343,6 +360,61 @@ h1 {
   letter-spacing: .1em; text-transform: uppercase; color: var(--faint);
   padding: 0 4px;
 }
+
+.arena-modal {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+  padding: clamp(16px, 4vw, 48px);
+}
+.arena-modal[hidden] { display: none; }
+.arena-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(28, 20, 10, .42);
+  backdrop-filter: blur(6px);
+  animation: fade .25s var(--ease) both;
+}
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.arena-dialog {
+  position: relative; z-index: 1;
+  width: min(620px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: clamp(18px, 2.4vw, 26px);
+  animation: pop .35s var(--spring) both;
+}
+.arena-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 4px;
+}
+.arena-head h2 {
+  font-family: var(--display); font-weight: 700; font-size: 18px; letter-spacing: -.015em;
+}
+.arena-actions { display: inline-flex; align-items: center; gap: 10px; }
+.arena-toggle {
+  font-family: var(--mono); font-size: 12px; color: var(--accent); cursor: pointer;
+  background: var(--accent-soft); border: 1px solid var(--line);
+  border-radius: 100px; padding: 8px 15px;
+  transition: filter .2s var(--ease), transform .15s var(--ease);
+}
+.arena-toggle:hover { filter: brightness(1.05); transform: translateY(-1px); }
+.arena-close {
+  width: 34px; height: 34px; flex-shrink: 0;
+  display: grid; place-items: center; cursor: pointer;
+  font-size: 15px; color: var(--muted);
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 50%;
+  transition: color .18s var(--ease), background .18s var(--ease);
+}
+.arena-close:hover { color: var(--text); background: var(--line-soft); }
+#arena-canvas { display: block; width: 100%; }
+.arena-legend {
+  display: flex; flex-wrap: wrap; gap: 18px; justify-content: center;
+  margin-top: 6px; font-family: var(--mono); font-size: 11.5px; color: var(--muted);
+}
+.arena-legend[hidden] { display: none; }
+.leg-item { display: inline-flex; align-items: center; gap: 8px; }
+.leg-item i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
 
 .footnote {
   margin-top: clamp(40px, 7vw, 72px); padding-top: 22px;
