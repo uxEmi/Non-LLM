@@ -147,10 +147,15 @@ function render(result) {
   countUp($("r-wait"), wait);
   $("r-wait").style.color = wait <= 5 ? "#1FA971" : wait <= 15 ? "#E8890B" : "var(--alert)";
 
-  const words = result.top_words || [];
+  renderChips(review ? [] : (result.top_words || []));
+  renderHeatmap(result.text_en, result.word_weights, TEAMS[result.predicted_team] || result.predicted_team);
+  updateArena(result);
+}
+
+function renderChips(words) {
   const why = $("r-why"), wrap = $("r-words");
   wrap.innerHTML = "";
-  if (words.length && !review) {
+  if (words && words.length) {
     words.forEach((w) => {
       const s = document.createElement("span");
       s.className = "why-word";
@@ -161,20 +166,21 @@ function render(result) {
   } else {
     why.hidden = true;
   }
-
-  renderHeatmap(result);
-  updateArena(result);
 }
 
-function renderHeatmap(result) {
-  const weights = result.word_weights || {};
-  const text = result.text_en || "";
+function normWord(tok) {
+  return tok.toLowerCase()
+    .replace(/[ăâ]/g, "a").replace(/î/g, "i").replace(/[șş]/g, "s").replace(/[țţ]/g, "t")
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function renderHeatmap(text, weights, teamRo) {
   const tile = $("r-heat-tile"), box = $("r-heat");
-  if (!Object.keys(weights).length || !text) { tile.hidden = true; return; }
+  if (!weights || !Object.keys(weights).length || !text) { tile.hidden = true; return; }
   box.innerHTML = "";
   text.split(/(\s+)/).forEach((tok) => {
     if (/^\s+$/.test(tok) || tok === "") { box.appendChild(document.createTextNode(tok)); return; }
-    const key = tok.toLowerCase().replace(/[^a-z0-9]+/g, "");
+    const key = normWord(tok);
     const w = weights[key];
     const span = document.createElement("span");
     span.className = "heat-word";
@@ -182,11 +188,25 @@ function renderHeatmap(result) {
     if (w !== undefined && Math.abs(w) > 0.06) {
       const a = Math.min(Math.abs(w), 1) * 0.6;
       span.style.background = w > 0 ? `rgba(31,169,113,${a})` : `rgba(229,72,77,${a})`;
-      span.title = `${w > 0 ? "susține" : "împotriva"} ${result.predicted_team} (${w.toFixed(2)})`;
+      span.title = `${w > 0 ? "susține" : "împotriva"} ${teamRo} (${w.toFixed(2)})`;
     }
     box.appendChild(span);
   });
   tile.hidden = false;
+}
+
+async function explainRo(text, model, review) {
+  try {
+    const res = await fetch(API_EXPLAIN, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, model }),
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    renderChips(review ? [] : (data.top_words || []));
+    renderHeatmap(data.heat_text, data.word_weights, TEAMS[data.predicted_team] || data.predicted_team);
+  } catch (err) { /* keep English fallback */ }
 }
 
 const CLASS_LIST = Object.keys(TEAMS);
@@ -200,6 +220,7 @@ const ARENA_SHORT = {
 const MODEL_COLORS = { svm: "#F59E0B", xgboost: "#FB7185", bilstm: "#2BB3C0" };
 
 const API_TRACE = API_URL.replace(/\/predict$/, "/trace");
+const API_EXPLAIN = API_URL.replace(/\/predict$/, "/explain");
 const arenaCanvas = $("arena-canvas");
 const actx = arenaCanvas.getContext("2d");
 let arenaAnchors = [];
@@ -417,6 +438,7 @@ async function route() {
   try {
     const result = await predict(textToRoute, currentModel);
     render(result);
+    explainRo(textToRoute, currentModel, result.confidence < CONFIDENCE_THRESHOLD);
   } catch (err) {
     emptyEl.hidden = false;
     resultEl.hidden = true;

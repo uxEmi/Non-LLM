@@ -224,6 +224,53 @@ def explain(model, text, team):
     return top, weights
 
 
+def _norm_ro(word):
+    word = word.lower().translate(str.maketrans("ăâîșțşţ", "aaistst"))
+    return re.sub(r"[^a-z0-9]+", "", word)
+
+
+def _strip_ends(word):
+    return re.sub(r"^[^0-9A-Za-zĂÂÎȘȚăâîșț]+|[^0-9A-Za-zĂÂÎȘȚăâîșț]+$", "", word)
+
+
+def explain_ro(model, ro_text, text_en, team, max_words=30):
+    tokens = ro_text.split()
+    if not tokens or ro_text.strip().lower() == (text_en or "").strip().lower():
+        top, weights = explain(model, text_en, team)
+        return top, weights, text_en
+    keys = [_norm_ro(t) for t in tokens]
+    display, uniq = {}, []
+    for i, t in enumerate(tokens):
+        k = keys[i]
+        if not k:
+            continue
+        if k not in display:
+            display[k] = _strip_ends(t)
+            if len(uniq) < max_words:
+                uniq.append(k)
+    variants = [" ".join(tokens[i] for i in range(len(tokens)) if keys[i] != k) for k in uniq]
+    try:
+        from deep_translator import GoogleTranslator
+        translated = GoogleTranslator(source="auto", target="en").translate("\n".join(variants)) or ""
+        variants_en = translated.split("\n")
+    except Exception:
+        top, weights = explain(model, text_en, team)
+        return top, weights, text_en
+    if len(variants_en) != len(uniq):
+        top, weights = explain(model, text_en, team)
+        return top, weights, text_en
+    base = model_proba(model, text_en)
+    base_p = base.get(team, 0.0) if base else 0.0
+    scored = []
+    for k, ven in zip(uniq, variants_en):
+        p = model_proba(model, ven.strip())
+        scored.append((k, float(base_p - (p.get(team, 0.0) if p else 0.0))))
+    max_abs = max((abs(w) for _, w in scored), default=0.0)
+    weights = {k: round(w / max_abs, 3) for k, w in scored} if max_abs > 0 else {}
+    top = [display[k] for k, w in sorted(scored, key=lambda s: -s[1]) if w > 0 and len(display[k]) >= 3][:5]
+    return top, weights, ro_text
+
+
 load_models()
 
 
@@ -302,3 +349,14 @@ def predict_all(ticket: Ticket):
             "probabilities": probs,
         }
     return {"text_en": text_en, "models": models}
+
+
+@app.post("/explain")
+def explain_endpoint(ticket: Ticket):
+    text_en = translate_to_english(ticket.text)
+    probs = model_proba(ticket.model, text_en)
+    if probs is None:
+        return {"top_words": [], "word_weights": {}, "heat_text": ticket.text, "predicted_team": random.choice(CLASSES)}
+    team = max(probs, key=probs.get)
+    top, weights, heat = explain_ro(ticket.model, ticket.text, text_en, team)
+    return {"top_words": top, "word_weights": weights, "heat_text": heat, "predicted_team": team}
