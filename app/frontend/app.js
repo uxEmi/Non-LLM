@@ -142,6 +142,10 @@ function render(result) {
 
   countUp($("r-lat"), result.latency_ms);
   $("r-model").textContent = result.model.toUpperCase();
+
+  const wait = result.estimated_wait_min ?? 0;
+  countUp($("r-wait"), wait);
+  $("r-wait").style.color = wait <= 5 ? "#1FA971" : wait <= 15 ? "#E8890B" : "var(--alert)";
 }
 
 async function route() {

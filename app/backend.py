@@ -1,5 +1,6 @@
 import sys
 import time
+import math
 import random
 import pathlib
 
@@ -25,6 +26,35 @@ app.add_middleware(
 )
 
 LOADED = {}
+
+HANDLE_MIN = {
+    "Credit Reporting": 4,
+    "Loans": 5,
+    "Debt Collection": 3,
+    "Credit Card Services": 3,
+    "Bank Accounts and Services": 2,
+}
+QUEUE = {
+    "Credit Reporting": 3.0,
+    "Loans": 2.0,
+    "Debt Collection": 2.0,
+    "Credit Card Services": 1.0,
+    "Bank Accounts and Services": 1.0,
+}
+DRAIN_PER_MIN = 0.8
+LAST_DRAIN = {"t": time.time()}
+
+
+def department_wait(team):
+    now = time.time()
+    elapsed_min = (now - LAST_DRAIN["t"]) / 60.0
+    LAST_DRAIN["t"] = now
+    for name in QUEUE:
+        QUEUE[name] = max(0.0, QUEUE[name] - elapsed_min * DRAIN_PER_MIN)
+    QUEUE[team] = QUEUE.get(team, 0.0) + 1.0
+    pending = QUEUE[team]
+    eta = max(1, math.ceil(pending * HANDLE_MIN.get(team, 3)))
+    return eta, int(round(pending))
 
 
 class Ticket(BaseModel):
@@ -133,9 +163,12 @@ def predict(ticket: Ticket):
         team, confidence = random.choice(CLASSES), 0.5
 
     latency_ms = round((time.perf_counter() - start) * 1000, 2)
+    wait_min, queue_len = department_wait(team)
     return {
         "predicted_team": team,
         "confidence": confidence,
         "latency_ms": latency_ms,
         "model": ticket.model,
+        "estimated_wait_min": wait_min,
+        "queue_len": queue_len,
     }
