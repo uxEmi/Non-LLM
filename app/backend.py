@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import joblib
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -140,6 +141,61 @@ def predict_bilstm(text):
     return bundle["classes"][index], float(probabilities[index])
 
 
+def _top_scored(scored, k):
+    scored = [s for s in scored if s[1] > 0]
+    scored.sort(key=lambda s: s[1], reverse=True)
+    out, seen = [], set()
+    for word, _ in scored:
+        if word not in seen:
+            seen.add(word)
+            out.append(word)
+        if len(out) >= k:
+            break
+    return out
+
+
+def words_svm(text, team, k=5):
+    pipeline = LOADED["svm"]
+    tfidf = pipeline.named_steps["tfidf"]
+    clf = pipeline.named_steps["svm"]
+    classes = list(pipeline.classes_)
+    if team not in classes:
+        return []
+    ci = classes.index(team)
+    coef = np.mean([cc.estimator.coef_[ci] for cc in clf.calibrated_classifiers_], axis=0)
+    x = tfidf.transform([text])
+    names = tfidf.get_feature_names_out()
+    scored = [(names[idx], float(val * coef[idx])) for idx, val in zip(x.indices, x.data)]
+    return _top_scored(scored, k)
+
+
+def words_xgboost(text, team, k=5):
+    import xgboost as xgb
+    bundle = LOADED["xgboost"]
+    vectorizer, classifier, encoder = bundle["vectorizer"], bundle["classifier"], bundle["encoder"]
+    classes = list(encoder.classes_)
+    if team not in classes:
+        return []
+    ci = classes.index(team)
+    x = vectorizer.transform([text])
+    contribs = np.array(classifier.get_booster().predict(xgb.DMatrix(x), pred_contribs=True))
+    row = contribs[0, ci, :-1]
+    names = vectorizer.get_feature_names_out()
+    scored = [(names[idx], float(row[idx])) for idx in x.indices]
+    return _top_scored(scored, k)
+
+
+def influential_words(model, text, team, k=5):
+    try:
+        if model == "svm" and "svm" in LOADED:
+            return words_svm(text, team, k)
+        if model == "xgboost" and "xgboost" in LOADED:
+            return words_xgboost(text, team, k)
+    except Exception:
+        return []
+    return []
+
+
 load_models()
 
 
@@ -171,4 +227,5 @@ def predict(ticket: Ticket):
         "model": ticket.model,
         "estimated_wait_min": wait_min,
         "queue_len": queue_len,
+        "top_words": influential_words(ticket.model, text_en, team),
     }

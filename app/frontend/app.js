@@ -146,6 +146,21 @@ function render(result) {
   const wait = result.estimated_wait_min ?? 0;
   countUp($("r-wait"), wait);
   $("r-wait").style.color = wait <= 5 ? "#1FA971" : wait <= 15 ? "#E8890B" : "var(--alert)";
+
+  const words = result.top_words || [];
+  const why = $("r-why"), wrap = $("r-words");
+  wrap.innerHTML = "";
+  if (words.length && !review) {
+    words.forEach((w) => {
+      const s = document.createElement("span");
+      s.className = "why-word";
+      s.textContent = w;
+      wrap.appendChild(s);
+    });
+    why.hidden = false;
+  } else {
+    why.hidden = true;
+  }
 }
 
 async function route() {

@@ -273,6 +273,17 @@ h1 {
   width: 10px; height: 10px; border-radius: 50%;
   background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft);
 }
+.why { display: flex; flex-direction: column; gap: 9px; }
+.why-label {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--faint);
+}
+.why-words { display: flex; flex-wrap: wrap; gap: 6px; }
+.why-word {
+  font-size: 12px; font-weight: 600; color: var(--accent);
+  background: var(--accent-soft); border: 1px solid var(--line);
+  border-radius: 100px; padding: 4px 11px;
+}
 
 .tile-conf {
   grid-column: span 2; grid-row: span 2;
