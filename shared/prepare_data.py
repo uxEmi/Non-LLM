@@ -66,9 +66,12 @@ def main():
 
     per_class = max(1, args.n // len(CLASSES))
     if len(frame) > args.n:
-        frame = frame.groupby("label", group_keys=False).apply(
-            lambda group: group.sample(min(len(group), per_class), random_state=args.seed)
-        )
+        groups = [
+            group.sample(min(len(group), per_class), random_state=args.seed)
+            for _, group in frame.groupby("label")
+        ]
+        frame = pd.concat(groups).sample(frac=1, random_state=args.seed)
+
 
     train, test = train_test_split(
         frame[["text", "label"]],
