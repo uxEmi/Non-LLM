@@ -20,6 +20,14 @@
       <div class="composer" id="composer">
         <textarea id="ticket" rows="3"
           placeholder="ex: Am fost taxat de două ori pentru taxa anuală a cardului și vreau banii înapoi."></textarea>
+        <div id="faq-suggestions" class="faq-suggestions" hidden>
+          <span class="faq-header">💡 Articole recomandate care te-ar putea ajuta:</span>
+          <div id="faq-list" class="faq-list"></div>
+        </div>
+        <div id="pii-warning" class="pii-warning" hidden>
+          <span class="pii-icon">🔒</span>
+          <span id="pii-message" class="pii-msg">Date sensibile detectate. Le vom securiza la trimitere.</span>
+        </div>
         <div class="composer-bar">
           <div class="segmented" role="radiogroup" aria-label="Model de rutare" id="model-group">
             <button class="seg" role="radio" aria-checked="true" data-model="svm">SVM</button>
@@ -93,6 +101,14 @@
     </section>
 
     <div class="readout-empty" id="readout-empty" hidden></div>
+  </div>
+
+  <div id="faq-modal" class="modal-overlay" hidden>
+    <div class="modal-box">
+      <button class="modal-close" id="modal-close-btn">&times;</button>
+      <h3 id="modal-title" class="modal-title">Titlu articol</h3>
+      <div id="modal-body" class="modal-body">Conținut articol</div>
+    </div>
   </div>
 
   <script src="app.js"></script>
