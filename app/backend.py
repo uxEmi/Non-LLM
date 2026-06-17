@@ -1,4 +1,5 @@
 import sys
+import re
 import time
 import math
 import random
@@ -187,6 +188,24 @@ def _scored_features(model, text, team):
         row = contribs[0, ci, :-1]
         names = vectorizer.get_feature_names_out()
         return [(names[idx], float(row[idx])) for idx in x.indices]
+    if model == "bilstm" and "bilstm" in LOADED:
+        tokens = text.split()
+        if not tokens:
+            return []
+        base = proba_bilstm(text).get(team, 0.0)
+        keys = [re.sub(r"[^a-z0-9]+", "", t.lower()) for t in tokens]
+        seen = []
+        for key in keys:
+            if key and key not in seen:
+                seen.append(key)
+            if len(seen) >= 50:
+                break
+        scored = []
+        for key in seen:
+            kept = [tokens[i] for i in range(len(tokens)) if keys[i] != key]
+            p = proba_bilstm(" ".join(kept)).get(team, 0.0) if kept else 0.0
+            scored.append((key, float(base - p)))
+        return scored
     return []
 
 
