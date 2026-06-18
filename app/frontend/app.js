@@ -660,3 +660,104 @@ modalCloseBtn.addEventListener("click", closeFaqModal);
 faqModalEl.addEventListener("click", (e) => {
   if (e.target === faqModalEl) closeFaqModal();
 });
+
+const API_CONF = API_URL.replace(/\/predict$/, "/confusion/");
+let confModel = "svm";
+let confData = null;
+
+function openConfusion() {
+  $("conf-modal").hidden = false;
+  loadConfusion(confModel);
+}
+function closeConfusion() { $("conf-modal").hidden = true; }
+
+async function loadConfusion(model) {
+  confModel = model;
+  document.querySelectorAll("#conf-models .seg").forEach((b) => b.setAttribute("aria-checked", b.dataset.cm === model ? "true" : "false"));
+  const grid = $("conf-grid"), sub = $("conf-sub"), ex = $("conf-examples");
+  ex.hidden = true;
+  grid.innerHTML = "";
+  sub.textContent = "Se calculează…";
+  try {
+    const res = await fetch(API_CONF + model);
+    const data = await res.json();
+    if (!data.available) { sub.textContent = "Indisponibil — necesită data/test.csv local."; return; }
+    confData = data;
+    sub.textContent = `Acuratețe ${(data.accuracy * 100).toFixed(1)}% pe ${data.total} tichete de test. Apasă o celulă roșie (din afara diagonalei).`;
+    renderConfGrid(data);
+  } catch (err) {
+    sub.textContent = "Nu am putut contacta backend-ul.";
+  }
+}
+
+function renderConfGrid(data) {
+  const grid = $("conf-grid");
+  const C = data.classes, M = data.matrix;
+  let maxOff = 1, maxDiag = 1;
+  C.forEach((_, i) => C.forEach((_, j) => {
+    if (i === j) maxDiag = Math.max(maxDiag, M[i][j]);
+    else maxOff = Math.max(maxOff, M[i][j]);
+  }));
+  grid.style.gridTemplateColumns = `minmax(78px,auto) repeat(${C.length}, 1fr)`;
+  grid.innerHTML = "";
+  const corner = document.createElement("div");
+  corner.className = "conf-corner";
+  corner.textContent = "real ↓ / prezis →";
+  grid.appendChild(corner);
+  C.forEach((c) => {
+    const h = document.createElement("div");
+    h.className = "conf-colh";
+    h.textContent = ARENA_SHORT[c] || c;
+    grid.appendChild(h);
+  });
+  C.forEach((rc, i) => {
+    const rh = document.createElement("div");
+    rh.className = "conf-rowh";
+    rh.textContent = ARENA_SHORT[rc] || rc;
+    grid.appendChild(rh);
+    C.forEach((cc, j) => {
+      const cell = document.createElement("div");
+      cell.className = "conf-cell" + (i === j ? " diag" : "");
+      cell.textContent = M[i][j];
+      if (i === j) {
+        const a = Math.min(0.8, (M[i][j] / maxDiag) * 0.7 + 0.12);
+        cell.style.background = `rgba(31,169,113,${a})`;
+      } else if (M[i][j] > 0) {
+        const a = (M[i][j] / maxOff) * 0.72 + 0.06;
+        cell.style.background = `rgba(229,72,77,${a})`;
+        cell.classList.add("clickable");
+        cell.addEventListener("click", () => showConfExamples(i, j));
+      }
+      grid.appendChild(cell);
+    });
+  });
+}
+
+function showConfExamples(i, j) {
+  if (!confData) return;
+  const ex = $("conf-examples");
+  const list = confData.examples[`${i},${j}`] || [];
+  const trueRo = TEAMS[confData.classes[i]] || confData.classes[i];
+  const predRo = TEAMS[confData.classes[j]] || confData.classes[j];
+  ex.innerHTML = "";
+  const title = document.createElement("div");
+  title.className = "conf-ex-title";
+  title.innerHTML = `Tichete reale din <b>${trueRo}</b> rutate greșit la <b>${predRo}</b>:`;
+  ex.appendChild(title);
+  if (!list.length) {
+    const d = document.createElement("div"); d.className = "conf-ex"; d.textContent = "(fără exemple)"; ex.appendChild(d);
+  } else {
+    list.forEach((t) => { const d = document.createElement("div"); d.className = "conf-ex"; d.textContent = t; ex.appendChild(d); });
+  }
+  const note = document.createElement("div");
+  note.className = "conf-note";
+  note.textContent = "Date de test (text original, în engleză).";
+  ex.appendChild(note);
+  ex.hidden = false;
+}
+
+$("confusion-btn").addEventListener("click", openConfusion);
+$("conf-close").addEventListener("click", closeConfusion);
+$("conf-backdrop").addEventListener("click", closeConfusion);
+document.querySelectorAll("#conf-models .seg").forEach((b) => b.addEventListener("click", () => loadConfusion(b.dataset.cm)));
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("conf-modal").hidden) closeConfusion(); });

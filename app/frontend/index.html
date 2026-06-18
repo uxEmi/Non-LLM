@@ -11,7 +11,6 @@
 </head>
 <body>
   <div class="mesh" aria-hidden="true"></div>
-  <div class="grain" aria-hidden="true"></div>
 
   <div class="shell">
     <section class="stage">
@@ -40,6 +39,7 @@
       </div>
 
       <div class="chips" id="chips" aria-label="Exemple rapide"></div>
+      <button class="confusion-btn" id="confusion-btn" type="button"><span class="confusion-ic" aria-hidden="true"></span>Vezi unde greșește modelul</button>
     </section>
 
     <section class="result" id="readout-grid" hidden aria-live="polite">
@@ -130,6 +130,26 @@
       <button class="modal-close" id="modal-close-btn">&times;</button>
       <h3 id="modal-title" class="modal-title">Titlu articol</h3>
       <div id="modal-body" class="modal-body">Conținut articol</div>
+    </div>
+  </div>
+
+  <div class="conf-modal" id="conf-modal" hidden>
+    <div class="conf-backdrop" id="conf-backdrop"></div>
+    <div class="conf-dialog" role="dialog" aria-modal="true" aria-label="Unde greșește modelul">
+      <div class="conf-head">
+        <h2>Unde greșește modelul</h2>
+        <div class="conf-actions">
+          <div class="segmented" id="conf-models">
+            <button class="seg" type="button" data-cm="svm" aria-checked="true">SVM</button>
+            <button class="seg" type="button" data-cm="xgboost" aria-checked="false">XGBoost</button>
+            <button class="seg" type="button" data-cm="bilstm" aria-checked="false">BiLSTM</button>
+          </div>
+          <button class="arena-close" id="conf-close" type="button" aria-label="Închide">✕</button>
+        </div>
+      </div>
+      <p class="conf-sub" id="conf-sub"></p>
+      <div class="conf-grid" id="conf-grid"></div>
+      <div class="conf-examples" id="conf-examples" hidden></div>
     </div>
   </div>
 

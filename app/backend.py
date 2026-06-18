@@ -360,3 +360,74 @@ def explain_endpoint(ticket: Ticket):
     team = max(probs, key=probs.get)
     top, weights, heat = explain_ro(ticket.model, ticket.text, text_en, team)
     return {"top_words": top, "word_weights": weights, "heat_text": heat, "predicted_team": team}
+
+
+CONFUSION_CACHE = {}
+
+
+def _batch_predict(model_name, texts):
+    if model_name == "svm":
+        return list(LOADED["svm"].predict(texts))
+    if model_name == "xgboost":
+        bundle = LOADED["xgboost"]
+        feats = bundle["vectorizer"].transform(texts)
+        idx = bundle["classifier"].predict(feats)
+        return list(bundle["encoder"].inverse_transform(idx))
+    if model_name == "bilstm":
+        bundle = LOADED["bilstm"]
+        ids = torch.tensor([encode(t, bundle["stoi"]) for t in texts])
+        preds = []
+        with torch.no_grad():
+            for i in range(0, len(ids), 256):
+                logits = bundle["model"](ids[i:i + 256])
+                preds += [bundle["classes"][j] for j in logits.argmax(1).tolist()]
+        return preds
+    return []
+
+
+def compute_confusion(model_name, sample=4000, max_examples=6):
+    if model_name in CONFUSION_CACHE:
+        return CONFUSION_CACHE[model_name]
+    test_path = ROOT / "data" / "test.csv"
+    if model_name not in LOADED or not test_path.exists():
+        return None
+    import pandas as pd
+    df = pd.read_csv(test_path).dropna(subset=["text", "label"])
+    df = df[df["label"].isin(CLASSES)]
+    if len(df) > sample:
+        df = df.sample(sample, random_state=42)
+    texts = [str(t) for t in df["text"].tolist()]
+    trues = list(df["label"])
+    preds = _batch_predict(model_name, texts)
+    idx = {c: i for i, c in enumerate(CLASSES)}
+    matrix = [[0] * len(CLASSES) for _ in CLASSES]
+    examples, correct = {}, 0
+    for text, tr, pr in zip(texts, trues, preds):
+        if tr not in idx or pr not in idx:
+            continue
+        i, j = idx[tr], idx[pr]
+        matrix[i][j] += 1
+        if i == j:
+            correct += 1
+        else:
+            lst = examples.setdefault(f"{i},{j}", [])
+            if len(lst) < max_examples:
+                lst.append(text[:280])
+    total = sum(sum(r) for r in matrix)
+    result = {
+        "classes": CLASSES,
+        "matrix": matrix,
+        "examples": examples,
+        "total": total,
+        "accuracy": round(correct / total, 4) if total else 0.0,
+    }
+    CONFUSION_CACHE[model_name] = result
+    return result
+
+
+@app.get("/confusion/{model_name}")
+def confusion(model_name: str):
+    data = compute_confusion(model_name)
+    if data is None:
+        return {"available": False}
+    return {"available": True, **data}
