@@ -4,6 +4,7 @@ import time
 import math
 import random
 import pathlib
+import json
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -271,6 +272,56 @@ def explain_ro(model, ro_text, text_en, team, max_words=30):
     return top, weights, ro_text
 
 
+# Load FAQs
+FAQ_FILE = pathlib.Path(__file__).resolve().parent / "faqs.json"
+FAQS = {}
+if FAQ_FILE.exists():
+    with open(FAQ_FILE, "r", encoding="utf-8") as f:
+        FAQS = json.load(f)
+
+
+def preprocess_ro(text):
+    if not text:
+        return ""
+    text = text.lower()
+    text = text.translate(str.maketrans("ăâîșțşţ", "aaistst"))
+    return text
+
+
+def get_faq_suggestions(text, team, k=3):
+    if not FAQS or team not in FAQS:
+        return []
+    dept_faqs = FAQS[team]
+    if not dept_faqs:
+        return []
+    if len(dept_faqs) <= k:
+        return dept_faqs
+    
+    questions = [faq["q"] for faq in dept_faqs]
+    try:
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        from sklearn.metrics.pairwise import cosine_similarity
+        vectorizer = TfidfVectorizer(
+            preprocessor=preprocess_ro,
+            analyzer="char_wb",
+            ngram_range=(3, 5)
+        )
+        tfidf_matrix = vectorizer.fit_transform(questions)
+        
+        user_vector = vectorizer.transform([text])
+        similarities = cosine_similarity(user_vector, tfidf_matrix)[0]
+        
+        sorted_indices = np.argsort(similarities)[::-1]
+        
+        top_faqs = []
+        for idx in sorted_indices[:k]:
+            top_faqs.append(dept_faqs[int(idx)])
+        return top_faqs
+    except Exception as e:
+        print(f"Error in get_faq_suggestions: {e}", file=sys.stderr)
+        return dept_faqs[:k]
+
+
 load_models()
 
 
@@ -306,6 +357,7 @@ def predict(ticket: Ticket):
         "word_weights": word_weights,
         "text_en": text_en,
         "probabilities": probs,
+        "faq_suggestions": get_faq_suggestions(ticket.text, team, k=3),
     }
 
 

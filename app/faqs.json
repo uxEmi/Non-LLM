@@ -1,0 +1,412 @@
+{
+  "Loans": [
+    {
+      "q": "Cum funcționează perioada de grație pentru refinanțare?",
+      "a": "<p>Perioada de grație îți permite să amâni plata principalului sau a întregii rate pentru o perioadă determinată (1-6 luni). Dobânda se poate calcula în continuare în funcție de contract.</p>"
+    },
+    {
+      "q": "Ce documente sunt necesare pentru creditul de nevoi personale?",
+      "a": "<p>Aveți nevoie de actul de identitate (buletinul) și acordul de interogare ANAF pentru verificarea automată a veniturilor.</p>"
+    },
+    {
+      "q": "Cum pot solicita o amânare a ratelor (moratoriu)?",
+      "a": "<p>Puteți depune o cerere online în secțiunea Suport sau în sucursală, însoțită de documente care atestă scăderea veniturilor sau șomajul.</p>"
+    },
+    {
+      "q": "Care este diferența dintre dobânda fixă și cea variabilă?",
+      "a": "<p>Dobânda fixă rămâne neschimbată pe perioada stabilită, oferind predictibilitate. Dobânda variabilă evoluează în funcție de indicii de piață (IRCC/EURIBOR) și se modifică trimestrial.</p>"
+    },
+    {
+      "q": "Cum pot efectua o plată anticipată a creditului?",
+      "a": "<p>Puteți solicita rambursarea anticipată parțială sau totală din aplicație sau sucursală. Puteți alege reducerea perioadei creditului sau scăderea ratei lunare.</p>"
+    },
+    {
+      "q": "Ce este DAE (Dobânda Anuală Efectivă)?",
+      "a": "<p>DAE reprezintă costul total al creditului exprimat ca procent anual, incluzând dobânda, comisioanele de analiză și administrare cont.</p>"
+    },
+    {
+      "q": "Care este comisionul de rambursare anticipată?",
+      "a": "<p>Pentru creditele cu dobândă variabilă, comisionul este 0%. Pentru creditele cu dobândă fixă, este de maxim 1% din suma rambursată anticipat.</p>"
+    },
+    {
+      "q": "Cum pot obține o refinanțare de credit?",
+      "a": "<p>Solicitați o ofertă online sau în sucursală. Putem consolida mai multe credite existente într-o singură rată lunară mai mică.</p>"
+    },
+    {
+      "q": "Care sunt condițiile pentru creditul prima casă / nouă casă?",
+      "a": "<p>Trebuie să aveți un avans minim de 5%, să nu dețineți o locuință cu o suprafață utilă mai mare de 50mp și să îndepliniți criteriile de venit ale băncii.</p>"
+    },
+    {
+      "q": "Ce se întâmplă dacă întârzii plata ratei la credit?",
+      "a": "<p>Se vor calcula dobânzi penalizatoare pentru fiecare zi de întârziere. După 30 de zile, restanța va fi raportată la Biroul de Credit.</p>"
+    },
+    {
+      "q": "Pot include veniturile din străinătate la calculul creditului?",
+      "a": "<p>Da, banca acceptă venituri obținute în străinătate (salarii, pensii), cu condiția ca documentele (contract de muncă, fișe fiscale) să fie traduse și legalizate.</p>"
+    },
+    {
+      "q": "Ce este asigurarea de viață atașată creditului?",
+      "a": "<p>Este o asigurare care acoperă soldul creditului în caz de evenimente neprevăzute (deces, invaliditate), protejându-vă familia de preluarea datoriei.</p>"
+    },
+    {
+      "q": "Cum se calculează gradul maxim de îndatorare?",
+      "a": "<p>Conform normelor BNR, rata lunară totală a creditelor nu poate depăși 40% din veniturile nete lunare în RON (sau 45% pentru prima casă).</p>"
+    },
+    {
+      "q": "Pot obține un credit dacă am istoric negativ în Biroul de Credit?",
+      "a": "<p>Fiecare cerere este analizată individual. Dacă restanțele trecute au fost achitate și veniturile curente sunt stabile, aprobarea este posibilă.</p>"
+    },
+    {
+      "q": "Care este durata maximă pentru un credit de nevoi personale?",
+      "a": "<p>Durata maximă legală pentru un credit de nevoi personale este de 5 ani (60 de luni).</p>"
+    },
+    {
+      "q": "Ce este asigurarea obligatorie a locuinței (PAD)?",
+      "a": "<p>Este o poliță obligatorie prin lege care acoperă riscurile de cutremur, inundații și alunecări de teren, având o primă fixă de 20 EUR pe an.</p>"
+    },
+    {
+      "q": "Pot solicita modificarea datei scadente a ratei?",
+      "a": "<p>Da, puteți solicita modificarea datei de plată a ratei printr-o cerere depusă în sucursală, corelată cu data primirii salariului.</p>"
+    },
+    {
+      "q": "Ce documente trebuie depuse pentru un credit ipotecar?",
+      "a": "<p>Pe lângă actele de venit, sunt necesare actele de proprietate ale imobilului (extras de carte funciară, cadastru, contract de vânzare-cumpărare).</p>"
+    },
+    {
+      "q": "Cum funcționează simulatorul online de credite?",
+      "a": "<p>Simulatorul online vă permite să alegeți suma și perioada dorită pentru a obține o estimare rapidă a ratei lunare și a valorii DAE.</p>"
+    },
+    {
+      "q": "Ce este pre-aprobarea financiară a unui credit?",
+      "a": "<p>Este acordul băncii privind suma maximă pe care o puteți împrumuta pe baza veniturilor, fiind valabil timp de 90 de zile pentru găsirea locuinței.</p>"
+    }
+  ],
+  "Credit Reporting": [
+    {
+      "q": "Cum pot contesta o înregistrare negativă la Biroul de Credit?",
+      "a": "<p>Puteți depune o contestație scrisă prin acest portal de suport sau direct pe site-ul Biroului de Credit. Datele eronate vor fi rectificate în 30 de zile.</p>"
+    },
+    {
+      "q": "Cât timp rămân datele mele înscrise în Biroul de Credit?",
+      "a": "<p>Datele negative despre restanțe sunt păstrate în baza de date timp de 4 ani de la data plății integrale a restanței.</p>"
+    },
+    {
+      "q": "Cum pot obține raportul meu de credit gratuit?",
+      "a": "<p>Vă puteți crea un cont online pe site-ul oficial al Biroului de Credit (www.biroul-de-credit.ro) pentru a descărca raportul gratuit o dată pe lună.</p>"
+    },
+    {
+      "q": "Ce este scorul FICO și cum se calculează?",
+      "a": "<p>Scorul FICO este un număr între 300 și 850 care reflectă comportamentul de plată. Se calculează pe baza istoricului de plăți, a datoriilor și a creditelor noi.</p>"
+    },
+    {
+      "q": "Ce date sunt raportate la Biroul de Credit?",
+      "a": "<p>Sunt raportate informații despre creditele contractate, sumele împrumutate, perioada de rambursare, întârzierile la plată și refuzurile de plată.</p>"
+    },
+    {
+      "q": "Banca îmi poate interoga istoricul de credit fără acordul meu?",
+      "a": "<p>Nu, banca are nevoie de acordul dvs. scris sau digital explicit pentru a efectua o interogare în baza de date a Biroului de Credit.</p>"
+    },
+    {
+      "q": "Ce se consideră o restanță raportată la Biroul de Credit?",
+      "a": "<p>O sumă restantă mai mare de 10 RON care nu a fost achitată în termen de 30 de zile de la data scadenței stabilite în contract.</p>"
+    },
+    {
+      "q": "Cum pot șterge istoricul negativ dacă am plătit restanța?",
+      "a": "<p>Plata restanței nu șterge automat istoricul negativ trecut; ela doar actualizează statusul ca fiind 'achitat'. Istoricul negativ se șterge după 4 ani.</p>"
+    },
+    {
+      "q": "Ce pot face în caz de furt de identitate și credite frauduloase?",
+      "a": "<p>Dacă suspectați că s-a deschis un credit pe numele dvs. în mod fraudulos, depuneți imediat o plângere la poliție și notificați banca și Biroul de Credit.</p>"
+    },
+    {
+      "q": "Cât de des actualizează băncile datele la Biroul de Credit?",
+      "a": "<p>Băncile transmit actualizări zilnice sau cel puțin o dată pe lună referitoare la plățile efectuate și statusul creditelor active.</p>"
+    },
+    {
+      "q": "Cum îmi afectează scorul de credit solicitările multiple?",
+      "a": "<p>Prea multe interogări pentru credite într-un interval scurt de timp pot sugera un risc crescut și pot scădea temporar scorul de credit.</p>"
+    },
+    {
+      "q": "Ce este Centrala Riscului de Credit (CRC)?",
+      "a": "<p>CRC este o bază de date a BNR care monitorizează creditele mai mari de 20.000 RON și informațiile despre debitorii cu risc de neplată.</p>"
+    },
+    {
+      "q": "Pot solicita corectarea datelor dacă numele este scris greșit?",
+      "a": "<p>Da, erorile de redactare a datelor personale pot fi corectate rapid trimițând o copie a actului de identitate actualizat prin acest portal.</p>"
+    },
+    {
+      "q": "Ce este un co-debitor și cum îi afectează scorul de credit?",
+      "a": "<p>Un co-debitor împarte responsabilitatea totală a creditului. Orice întârzire la plată va afecta în mod egal scorul de credit al ambelor persoane.</p>"
+    },
+    {
+      "q": "De ce mi-a fost respins creditul deși nu am restanțe?",
+      "a": "<p>Respingerea poate fi cauzată de un grad prea mare de îndatorare, venituri instabile, vechime mică la angajator sau scor FICO insuficient.</p>"
+    },
+    {
+      "q": "Cum pot crește scorul de credit (FICO score)?",
+      "a": "<p>Plătiți ratele la timp, mențineți soldurile cardurilor de credit sub 30% din limită și evitați aplicarea simultană la mai multe bănci.</p>"
+    },
+    {
+      "q": "Ce reprezintă 'refuzul de credit' în raportul meu?",
+      "a": "<p>Nu există o listă neagră; un refuz înseamnă doar că cererea nu a îndeplinit criteriile băncii la acel moment. Nu se înscrie ca 'penalizare'.</p>"
+    },
+    {
+      "q": "Cum pot descărca raportul Biroului de Credit?",
+      "a": "<p>Nu există o aplicație mobilă dedicată; portalul este complet funcțional și optimizat pentru accesare din browserul mobil.</p>"
+    },
+    {
+      "q": "Care este scorul minim FICO acceptat pentru credite?",
+      "a": "<p>Majoritatea băncilor preferă un scor FICO de peste 600-650 pentru aprobarea facilă a creditelor ipotecare sau de nevoi personale.</p>"
+    },
+    {
+      "q": "Cum pot afla dacă sunt înregistrat ca rău-platnic?",
+      "a": "<p>Generați un raport de credit gratuit din portalul online. Restanțele raportate vor apărea colorate cu roșu în tabelul de plăți.</p>"
+    }
+  ],
+  "Bank Accounts and Services": [
+    {
+      "q": "Cum pot închide un cont bancar deschis online?",
+      "a": "<p>Puteți solicita închiderea contului direct din aplicația Mobile Banking sau depunând o cerere scrisă. Soldul contului trebuie să fie exact zero.</p>"
+    },
+    {
+      "q": "Care sunt comisioanele aplicabile pentru retrageri externe?",
+      "a": "<p>Retragerile în UE sunt comisionate la fel ca cele naționale (0% pentru pachetele de cont curente). În afara UE se aplică comision de 1.5% + 10 RON.</p>"
+    },
+    {
+      "q": "Cum activez plățile contactless pe noul meu card?",
+      "a": "<p>Pentru activare, efectuați prima tranzacție fizic la un ATM sau terminal POS introducând cardul în fantă și tastând codul PIN.</p>"
+    },
+    {
+      "q": "Cum pot deschide un cont curent online?",
+      "a": "<p>Descărcați aplicația noastră mobilă, inițiați un apel video de identificare și semnați electronic contractul de cont curent în doar 10 minute.</p>"
+    },
+    {
+      "q": "Ce comisioane se aplică pentru transferurile interbancare?",
+      "a": "<p>Transferurile în RON realizate online prin Mobile Banking sunt gratuite. Cele efectuate în sucursală sunt comisionate conform grilei standard.</p>"
+    },
+    {
+      "q": "Cum activez serviciul de Internet / Mobile Banking?",
+      "a": "<p>Puteți activa serviciul online folosind numărul dvs. de telefon și datele cardului activ sau vizitând orice sucursală a băncii.</p>"
+    },
+    {
+      "q": "Ce este un transfer instant și cât durează?",
+      "a": "<p>Un transfer instant (RON) este decontat în maximum 15 secunde către băncile din România care fac parte din sistemul de plăți instant.</p>"
+    },
+    {
+      "q": "Cum pot reseta codul PIN al cardului meu?",
+      "a": "<p>Puteți reseta codul PIN instant și gratuit din aplicația Mobile Banking sau solicitând o reemitere de PIN în orice sucursală.</p>"
+    },
+    {
+      "q": "Ce limite de retragere zilnică are cardul curent?",
+      "a": "<p>Limita standard de retragere numerar la ATM este de 3.000 RON pe zi, dar aceasta poate fi modificată instant din aplicație până la 10.000 RON.</p>"
+    },
+    {
+      "q": "Cum pot obține un extras de cont oficial?",
+      "a": "<p>Extrasul de cont poate fi descărcat gratuit în format PDF direct din Mobile Banking pentru orice perioadă din ultimele 24 de luni.</p>"
+    },
+    {
+      "q": "Cum pot depune bani (numerar) în contul meu?",
+      "a": "<p>Puteți depune numerar gratuit la orice bancomat multifuncțional (MFM/ATM cu funcție de depunere) al băncii, folosind cardul dvs.</p>"
+    },
+    {
+      "q": "Ce sunt plățile recurente (Direct Debit / Standing Order)?",
+      "a": "<p>Direct Debit este util pentru plata facturilor (banca plătește automat suma facturată). Standing Order trimite o sumă fixă periodică stabilită de dvs.</p>"
+    },
+    {
+      "q": "Cum pot schimba valuta la un curs de schimb preferențial?",
+      "a": "<p>Utilizatorii Mobile Banking au acces la un 'Happy Hour' zilnic (curs BNR) pentru schimburi valutare în limita a 1.000 EUR pe zi.</p>"
+    },
+    {
+      "q": "Ce fac dacă mi s-a blocat contul din cauza lipsei actualizării datelor?",
+      "a": "<p>Conform reglementărilor de prevenire a spălării banilor, trebuie să vă actualizați datele personale online prin buletin sau în sucursală pentru deblocare.</p>"
+    },
+    {
+      "q": "Cum asociez cardul meu cu Apple Pay sau Google Pay?",
+      "a": "<p>Deschideți aplicația Apple Wallet sau Google Wallet pe telefonul dvs. și introduceți datele cardului sau dați click pe 'Add to Wallet' din Mobile Banking.</p>"
+    },
+    {
+      "q": "Ce este un cont de economii și cum funcționează?",
+      "a": "<p>Este un cont care vă oferă dobândă pentru banii păstrați, permițându-vă în același timp accesul instant la fonduri fără a pierde dobânda acumulată.</p>"
+    },
+    {
+      "q": "Cum pot solicita un descoperit de cont (Overdraft)?",
+      "a": "<p>Puteți activa o limită de credit de până la 3 salarii nete atașată contului dvs. curent direct din aplicație, cu aprobare rapidă.</p>"
+    },
+    {
+      "q": "Cum aflu codul meu IBAN?",
+      "a": "<p>Codul IBAN este afișat pe ecranul principal din Mobile Banking, pe extrasele de cont sau îl puteți solicita la asistență clienți.</p>"
+    },
+    {
+      "q": "Ce comisioane se aplică pentru primirea de bani din străinătate?",
+      "a": "<p>Pentru plățile SEPA (EUR), primirea este gratuită. Pentru plățile non-SEPA (SWIFT) se pot aplica comisioane de procesare și corespondent.</p>"
+    },
+    {
+      "q": "Cum pot autoriza plățile online pe internet (3D Secure)?",
+      "a": "<p>Autorizarea se face prin biometrie (amprentă sau recunoaștere facială) direct din aplicația de Mobile Banking în urma notificării push primite.</p>"
+    }
+  ],
+  "Debt Collection": [
+    {
+      "q": "Ce drepturi am când sunt contactat de o agenție de recuperare?",
+      "a": "<p>Agențiile nu au voie să vă contacteze în afara orelor 08:00 - 20:00, să vă hărțuiască sau să divulge detalii despre datorie altor persoane.</p>"
+    },
+    {
+      "q": "Cum pot stabili un plan de eșalonare a datoriei?",
+      "a": "<p>Trimiteți o solicitare prin acest portal menționând suma lunară pe care o puteți plăti. Un consultant vă va contacta pentru semnarea acordului.</p>"
+    },
+    {
+      "q": "Ce fac dacă primesc o notificare de executare silită greșită?",
+      "a": "<p>Atașați o copie a notificării și dovada plății în acest tichet de suport. Vom sista imediat procedurile greșite și vom notifica executorul.</p>"
+    },
+    {
+      "q": "Ce este executarea silită și când se aplică?",
+      "a": "<p>Este procedura legală prin care creditorul își recuperează banii prin poprirea veniturilor sau valorificarea bunurilor, după obținerea unui titlu executoriu.</p>"
+    },
+    {
+      "q": "Cum pot ridica o poprire înființată pe contul meu?",
+      "a": "<p>Poprirea se ridică după achitarea integrală a debitului restant. Banca va debloca conturile după primirea adresei oficiale de ridicare de la executor.</p>"
+    },
+    {
+      "q": "Pot negocia o reducere a datoriei în caz de plată integrală?",
+      "a": "<p>Da, în anumite condiții de vechime a debitului, putem aproba o reducere parțială a datoriei (discount) dacă achitați suma rămasă într-o singură tranșă.</p>"
+    },
+    {
+      "q": "De ce a fost vândut creditul meu unei agenții de recuperare?",
+      "a": "<p>După depășirea unui termen de restanță de obicei mai mare de 90-120 de zile, banca poate decide cesionarea (vânzarea) creanței către o agenție specializată.</p>"
+    },
+    {
+      "q": "Ce se consideră un titlu executoriu în cazul creditelor?",
+      "a": "<p>Conform legii, contractul de credit semnat cu banca reprezintă în sine un titlu executoriu, nefiind necesar un proces lung pentru începerea executării.</p>"
+    },
+    {
+      "q": "Ce este prescripția datoriei și când intervine?",
+      "a": "<p>Dreptul de a cere executarea silită se prescrie de regulă în termen de 3 ani de la scadența creditului, dacă nu s-a efectuat niciun act de întrerupere a prescripției.</p>"
+    },
+    {
+      "q": "Cum mă pot asigura că datoria mea a fost stinsă complet?",
+      "a": "<p>După plata ultimei sume restante, solicitați în mod expres eliberarea unei adrese oficiale de închidere a datoriei și stingere a obligațiilor.</p>"
+    },
+    {
+      "q": "Ce venituri sunt protejate de poprirea pe cont?",
+      "a": "<p>Alocațiile pentru copii, ajutoarele sociale, indemnizațiile de maternitate și diurnele sunt protejate prin lege și nu pot fi poprite de bancă.</p>"
+    },
+    {
+      "q": "Ce procent din salariu poate fi poprit prin lege?",
+      "a": "<p>Poprirea poate fi înființată pe maxim 1/3 din venitul net lunar pentru un singur creditor, sau maxim 1/2 în cazul în care aveți mai mulți creditori.</p>"
+    },
+    {
+      "q": "Girantul poate fi executat silit?",
+      "a": "<p>Da, girantul garantează plata creditului cu propriile venituri și bunuri. Dacă debitorul principal nu plătește, girantul este executat silit.</p>"
+    },
+    {
+      "q": "Ce este o somație de plată de la un executor judecătoresc?",
+      "a": "<p>Este ultimul avertisment oficial primit înainte de începerea procedurilor de executare silită propriu-zise, oferindu-vă un termen de 15 zile pentru plată.</p>"
+    },
+    {
+      "q": "Cum pot contesta o executare silită în instanță?",
+      "a": "<p>Puteți depune o 'contestație la executare' la judecătorie în termen de 15 zile de la primirea primelor acte de executare sau a somației de plată.</p>"
+    },
+    {
+      "q": "Se calculează dobânzi penalizatoare în faza de colectare?",
+      "a": "<p>Da, dobânzile penalizatoare continuă să se acumuleze zilnic conform contractului până la achitarea completă sau declararea scadenței anticipate.</p>"
+    },
+    {
+      "q": "Ce se întâmplă cu datoria în caz de deces al debitorului?",
+      "a": "<p>Datoria nu se stinge automat (decât dacă există asigurare de viață activă). Ea se transmite moștenitorilor legali care acceptă succesiunea.</p>"
+    },
+    {
+      "q": "Cum pot transmite dovada plății efectuate către colectare?",
+      "a": "<p>Trimiteți o fotografie sau un document PDF clar al chitanței sau al ordinului de plată direct prin intermediul acestui tichet de suport.</p>"
+    },
+    {
+      "q": "Ce este un angajament de plată voluntar?",
+      "a": "<p>Este o înțelegere amiabilă semnată cu banca prin care vă obligați să plătiți o sumă lunară fixă pentru a evita începerea executării silite.</p>"
+    },
+    {
+      "q": "Cum pot bloca apelurile repetate de la agenții?",
+      "a": "<p>Nu le puteți bloca complet prin lege, dar puteți solicita stabilirea unui interval orar preferențial în care să fiți contactat pentru discuții.</p>"
+    }
+  ],
+  "Credit Card Services": [
+    {
+      "q": "Cum disput o tranzacție neautorizată (chargeback)?",
+      "a": "<p>Specificați data tranzacției, suma și numele comerciantului în reclamație. Blocați cardul imediat din aplicație pentru a preveni alte tranzacții.</p>"
+    },
+    {
+      "q": "Cum pot modifica limita de credit pentru cardul meu?",
+      "a": "<p>Modificarea limitei se poate solicita online din Internet Banking. Banca va efectua o analiză rapidă a veniturilor raportate la ANAF.</p>"
+    },
+    {
+      "q": "Ce trebuie să fac dacă mi-a fost blocat sau furat cardul?",
+      "a": "<p>Blocați cardul instant din Mobile Banking sau sunați la serviciul de asistență non-stop la numărul <b>+40 21 304 8100</b>.</p>"
+    },
+    {
+      "q": "Cum funcționează perioada de grație la cardul de credit?",
+      "a": "<p>Perioada de grație (de obicei 55 de zile) înseamnă dobândă 0% pentru cumpărăturile efectuate, dacă achitați suma totală datorată până la data scadenței.</p>"
+    },
+    {
+      "q": "Ce reprezintă suma minimă de plată lunară?",
+      "a": "<p>Este suma minimă pe care trebuie să o achitați lunar (ex. 3-5% din soldul utilizat) pentru a nu fi raportat ca restant la Biroul de Credit.</p>"
+    },
+    {
+      "q": "Cum funcționează ratele fără dobândă la comercianții parteneri?",
+      "a": "<p>Când plătiți la parteneri, puteți alege împărțirea sumei în rate egale (între 2 și 12 rate). Plata ratelor lunare se face fără dobândă.</p>"
+    },
+    {
+      "q": "Ce comisioane se aplică pentru retragerea de numerar de pe cardul de credit?",
+      "a": "<p>Retragerea de numerar de pe cardul de credit este purtătoare de comision (ex. 1% - 3%) și dobândă din prima zi, neavând perioadă de grație.</p>"
+    },
+    {
+      "q": "Cum pot anula taxa anuală de administrare a cardului?",
+      "a": "<p>Taxa anuală poate fi scutită în funcție de campaniile active sau dacă realizați un volum minim de cumpărături anuale stabilit în contract.</p>"
+    },
+    {
+      "q": "Ce este serviciul Cashback / puncte de loialitate?",
+      "a": "<p>Fiecare plată cu cardul de credit vă aduce un procent înapoi sub formă de bani (cashback) sau puncte de cumpărături pe care le puteți folosi ulterior.</p>"
+    },
+    {
+      "q": "Cum pot activa un card de credit proaspăt emis?",
+      "a": "<p>Cardul de credit se activează efectuând prima tranzacție cu introducerea cardului la un bancomat (ATM) și tastarea codului PIN primit.</p>"
+    },
+    {
+      "q": "Pot folosi cardul de credit în străinătate?",
+      "a": "<p>Da, cardurile noastre de credit (Visa/Mastercard) sunt acceptate internațional. Se pot aplica comisioane mici de conversie valutară la tranzacții.</p>"
+    },
+    {
+      "q": "Cum funcționează cardurile de credit virtuale?",
+      "a": "<p>Puteți genera un card virtual temporar din Mobile Banking pentru plăți online securizate. Datele cardului se schimbă după utilizare.</p>"
+    },
+    {
+      "q": "Ce se întâmplă dacă plătesc doar suma minimă datorată?",
+      "a": "<p>Nu veți plăti penalizări, dar se va calcula dobândă zilnică pentru restul sumei utilizate și neachitate până la închiderea completă a soldului.</p>"
+    },
+    {
+      "q": "Cum pot vizualiza extrasul lunar al cardului?",
+      "a": "<p>Extrasul lunar este trimis automat pe email și este disponibil gratuit în aplicație la începutul fiecărui ciclu de tranzacționare.</p>"
+    },
+    {
+      "q": "Care este dobânda penalizatoare pentru întârzierea plății minime?",
+      "a": "<p>Dacă nu achitați nici măcar suma minimă până la scadență, se aplică o dobândă penalizatoare suplimentară și se raportează restanța la Biroul de Credit.</p>"
+    },
+    {
+      "q": "Cum pot asocia cardul de credit cu Apple Pay / Google Pay?",
+      "a": "<p>Adăugați cardul direct în aplicația Apple Wallet sau Google Wallet introducând manual datele sau autorizând din aplicația Mobile Banking.</p>"
+    },
+    {
+      "q": "Pot transfera bani de pe cardul de credit în contul curent?",
+      "a": "<p>Da, dar operațiunea este asimilată unei retrageri de numerar, fiind comisionată și purtătoare de dobândă din momentul transferului.</p>"
+    },
+    {
+      "q": "Care este diferența dintre cardul de debit și cel de credit?",
+      "a": "<p>Cardul de debit folosește banii tăi proprii din cont. Cardul de credit folosește fondurile împrumutate de bancă în limita unui plafon aprobat.</p>"
+    },
+    {
+      "q": "Cum pot solicita închiderea cardului de credit?",
+      "a": "<p>Solicitarea se poate face online sau în sucursală. Soldul cardului trebuie să fie complet achitat (inclusiv eventualele rate viitoare neajunse la scadență).</p>"
+    },
+    {
+      "q": "Ce este un ciclu de tranzacționare la cardul de credit?",
+      "a": "<p>Perioada (de obicei o lună calendaristică) în care se adună cumpărăturile efectuate. La finalul ei se emite extrasul cu suma de plată.</p>"
+    }
+  ]
+}
